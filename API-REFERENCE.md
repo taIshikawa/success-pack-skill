@@ -12,6 +12,7 @@
 >   - 公開ツール（作成・複製）: `create_pack` / `fork_pack`
 >   - 公開ツール（作成後に"育てる"＝構造編集）: `update_pack` / `update_task` / `delete_task` / `save_workstream` / `delete_workstream` / `save_phase` / `delete_phase` / `save_process` / `delete_process` / `reorder_tasks` / `delete_pack`
 >   - 公開ツール（ファイル添付）: `upload_asset`
+>   - 公開ツール（上流の取り込み＝合流）: `preview_merge`（試算）/ `merge_upstream`（適用）
 
 ---
 
@@ -124,12 +125,14 @@ MCP は同じ操作を JSON-RPC の `tools/call`（`{"name": "<ツール名>", "
 | プロセス 削除 | `DELETE /api/v1/packs/:slug/processes/:processId` | `delete_process` | 配下タスクも cascade で削除 |
 | タスク並替 | `POST /api/v1/packs/:slug/processes/:processId/reorder` | `reorder_tasks` | body `{ ids }` の順に order 振り直し |
 | 継承 | `POST /api/v1/packs/:slug/fork` | `fork_pack` | 公式/他パックをハードコピーして own 化（新slugは REST=`slug` / MCP=`newSlug`） |
-| 上流差分 | `GET /api/v1/packs/:slug/upstream` | `get_upstream_diff` | 派生元の更新差分（表示専用） |
+| 上流差分 | `GET /api/v1/packs/:slug/upstream` | `get_upstream_diff` | 派生元の更新差分（表示専用・base↔latest の2-way） |
+| 取り込み試算 | `GET /api/v1/packs/:slug/merge` | `preview_merge` | 上流を取り込むと何が変わるかの試算（適用しない・3-way） |
+| 取り込み（合流） | `POST /api/v1/packs/:slug/merge` | `merge_upstream` | 上流更新を実際に取り込む。「上流が変更 × 自分は未編集」のみ自動反映し、競合はローカル維持＋件数報告。取り込み後は上流最新に追従 |
 | **パック削除** | `DELETE /api/v1/packs/:slug` | `delete_pack` | 丸ごと削除（**取り消し不可**） |
 | ファイル添付 | `POST /api/v1/packs/:slug/assets` | `upload_asset` | テンプレ実ファイルを Storage に保存し `path` を返す（base64・上限10MB）→ task の `suppliedAssets[].path` へ入れて確定 |
 
 ### レート制限
-書き込み系（create_pack / update_pack / update_task / delete_task / save_workstream / delete_workstream / save_phase / delete_phase / save_process / delete_process / reorder_tasks / fork_pack / delete_pack / upload_asset）は **1キーあたり 60回/分**（`whoami` などの読取は対象外）。
+書き込み系（create_pack / update_pack / update_task / delete_task / save_workstream / delete_workstream / save_phase / delete_phase / save_process / delete_process / reorder_tasks / fork_pack / delete_pack / upload_asset / merge_upstream）は **1キーあたり 60回/分**（`whoami` / `preview_merge` などの読取は対象外）。
 超過時は REST が `429`、MCP は `isError` の結果を返す。少し待って再試行すること。
 
 ### 不変条件（サーバが必ず強制する）

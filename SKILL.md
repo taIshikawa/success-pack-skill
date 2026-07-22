@@ -91,7 +91,11 @@ Pack（サクセスパック＝1つの方法論／案件テンプレ）
 **ファイルを添付する**
 - `upload_asset {slug,taskId?,filename,contentBase64,contentType?}` — Word/PPT/Excel/PDF 等の実ファイルを base64 で渡して保存し `path` を受け取る → 該当タスクの `suppliedAssets[].path` に入れて `update_task` で確定（上限10MB）。**Markdown/リンク（Google/Notion）はアップロード不要**＝`suppliedAssets` に `content`/`url` を直接書く。
 
-書き込みは **60回/分**。`isError` が返ったら少し待って再試行。
+**上流を取り込む（合流／fork のメンテ）**
+- `preview_merge {slug}` — 派生元（公式など）が更新されているとき、取り込むと何が変わるかを試算（適用なし・3-way）。追加/更新/削除される項目と、編集済みで競合する項目を返す。
+- `merge_upstream {slug}` — 実際に取り込む。**ユーザーが編集した項目は絶対に上書き・削除しない**（上流が変更×自分は未編集の項目だけ自動反映。競合はローカルを残し件数を報告）。取り込み後は上流の最新版に追従する。fork したパックを最新に保ちたいときに使う。
+
+書き込みは **60回/分**（`preview_merge` は読取＝対象外）。`isError` が返ったら少し待って再試行。
 
 ---
 
