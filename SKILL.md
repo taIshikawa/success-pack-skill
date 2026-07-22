@@ -106,10 +106,10 @@ Pack（サクセスパック＝1つの方法論／案件テンプレ）
 - `create_group {name}` — チームを作成（作成者が owner）。返る `id` を共有・招待に使う。
 - `search_users {query}` — 招待候補を表示名/氏名/メールで検索（userId を得る）。
 - `add_group_member {groupId,userId|email}` — メンバーを追加（search_users の userId 推奨・email 直指定も可。相手は一度サインイン済みが必要）。
-- `share_pack {slug,groupId}` — 自分のパックをチームへ**閲覧共有**。メンバーは読めるが**編集はできない**（編集権限は owner に残る）。private パックでも共有相手には見える。
+- `share_pack {slug,groupId,access}` — 自分のパックをチームへ共有。`access`='view'（閲覧のみ・既定）/'edit'（マトリクス・タスクを編集可）。edit でも**公開範囲変更・共有設定・削除は owner だけ**。private パックでも共有相手には見える。既存共有への再実行で権限変更。
 - `unshare_pack {slug,groupId}` / `remove_group_member {groupId,userId}` / `delete_group {groupId}` — 解除・削除系。
-- `list_pack_shares {slug}` / `list_group_members {groupId}` — 現在の共有先・メンバーの確認（読取）。
-- 使いどころ: ユーザーが「このパックをチーム/同僚に見せたい」と言ったら、`create_group`→`add_group_member`→`share_pack` の順。共有は閲覧のみなので、相手に編集させたい場合は代わりに `fork_pack` を案内する。
+- `list_pack_shares {slug}` / `list_group_members {groupId}` — 現在の共有先（access 込み）・メンバーの確認（読取）。
+- 使いどころ: 「チーム/同僚に見せたい」→ `create_group`→`add_group_member`→`share_pack`。見せるだけなら access=view、一緒に編集するなら access=edit。完全に独立したコピーを持たせたいなら `fork_pack`。
 
 書き込みは **60回/分**（`preview_merge` / `list_groups` などの読取＝対象外）。`isError` が返ったら少し待って再試行。
 

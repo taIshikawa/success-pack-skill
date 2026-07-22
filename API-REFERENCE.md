@@ -146,10 +146,10 @@ MCP は同じ操作を JSON-RPC の `tools/call`（`{"name": "<ツール名>", "
 | メンバー追加 | `POST /api/v1/groups/:id/members` | `add_group_member` | body `{userId}`（search_users で取得・推奨）か `{email}`。相手は一度サインイン済みが必要（owner のみ） |
 | メンバー削除 | `DELETE /api/v1/groups/:id/members` | `remove_group_member` | `?userId=` か body `{userId}`（owner or 本人の退出。owner は外せない） |
 | 共有先一覧 | `GET /api/v1/packs/:slug/shares` | `list_pack_shares` | このパックの共有先チーム（groupId/名前） |
-| **共有する** | `POST /api/v1/packs/:slug/shares` | `share_pack` | body `{groupId}`。パックをチームへ閲覧共有（201） |
+| **共有する** | `POST /api/v1/packs/:slug/shares` | `share_pack` | body `{groupId, access}`。access=`view`（既定・閲覧）/`edit`（編集可）。既存共有は上書き＝権限変更（201） |
 | 共有解除 | `DELETE /api/v1/packs/:slug/shares` | `unshare_pack` | `?groupId=` か body `{groupId}`（パック owner のみ） |
 
-典型フロー: `create_group`（→ `id`）→ `add_group_member`（email で招待）→ `share_pack`（slug × groupId）。共有されたパックはメンバーの一覧に「共有・閲覧のみ」として並ぶ。相手に編集させたい場合は共有ではなく `fork_pack` を案内する。
+典型フロー: `create_group`（→ `id`）→ `add_group_member`（email/userId で招待）→ `share_pack`（slug × groupId × access）。共有されたパックはメンバーの一覧に「共有・閲覧のみ／編集可」として並ぶ。完全に独立したコピーを持たせたいなら `fork_pack`。
 
 ### レート制限
 書き込み系（create_pack / update_pack / update_task / delete_task / save_workstream / delete_workstream / save_phase / delete_phase / save_process / delete_process / reorder_tasks / fork_pack / delete_pack / upload_asset / merge_upstream / create_group / rename_group / delete_group / add_group_member / remove_group_member / share_pack / unshare_pack）は **1キーあたり 60回/分**（`whoami` / `preview_merge` / `list_groups` などの読取は対象外）。
@@ -160,7 +160,7 @@ MCP は同じ操作を JSON-RPC の `tools/call`（`{"name": "<ツール名>", "
 2. **公式(locked)・他人のパックは書込不可**。公式への改善は「提案→レビュー→新版発行」の別導線。
 3. 公開範囲を尊重：private は所有者のみ。
 4. 継承は**ハードコピー**。`fork` 後は元と独立（自動追従しない。差分は `get_upstream_diff` で確認）。
-5. **チーム共有は閲覧のみ**。共有相手は読めるが書き込めない（編集は owner だけ）。private パックでも共有相手には見える。
+5. **チーム共有は access 次第**（`view`=閲覧のみ／`edit`=マトリクス・タスク編集可）。`edit` でも**公開範囲変更・共有設定・パック削除は owner だけ**。private パックでも共有相手には見える。
 
 ## 5. 最小の投入手順（外部AI視点）
 1. §3 の Pack JSON を1件生成する（workstreams/phases を先に定義し、processes がそれを参照）。
