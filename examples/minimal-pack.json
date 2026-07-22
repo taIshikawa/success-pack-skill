@@ -1,0 +1,119 @@
+{
+  "_comment": "create_pack にそのまま渡せる最小の“お手本”。縦=仕事の種類（ディシプリン）/横=標準6フェーズ/outputs.id→inputs.from の業務フローリンク/why+how必須、を1つずつ実演する。slug は自分用に変えること。",
+  "slug": "example-mini-dev",
+  "title": "（例）小規模Web開発の進め方",
+  "description": "サンプル: 縦=仕事の種類・横=時間のマトリクスに、Why/How/RACI/In/Out を持つタスクを置く最小構成。",
+  "accent": "#2E5E8C",
+  "visibility": "private",
+  "workstreams": [
+    { "id": "d-req", "name": "要件定義", "color": "#5EA96C", "order": 1 },
+    { "id": "d-build", "name": "設計・構築", "color": "#5B8ECD", "order": 2 },
+    { "id": "d-pm", "name": "PM・統制", "color": "#C466A0", "order": 3 }
+  ],
+  "phases": [
+    { "id": "getstarted", "name": "着手", "order": 1 },
+    { "id": "initiate", "name": "立ち上げ", "order": 2 },
+    { "id": "plan", "name": "計画", "order": 3 },
+    { "id": "execute", "name": "実行", "order": 4 },
+    { "id": "deliver", "name": "デリバリー", "order": 5 },
+    { "id": "close", "name": "クローズ", "order": 6 }
+  ],
+  "processes": [
+    {
+      "id": "pr-req-1",
+      "title": "要求ヒアリング・要件定義",
+      "summary": "顧客の要求を聞き、合意できる要件に落とす（計画フェーズ）",
+      "workstreamId": "d-req",
+      "phaseId": "plan",
+      "tasks": [
+        {
+          "id": "t-req-hearing",
+          "title": "要件ヒアリングの進め方",
+          "summary": "初回ヒアリングで要求を構造化して聞き切る",
+          "why": "後工程の手戻りの大半は初回ヒアリングの聞き漏らしが原因。特に『誰が承認するか』を聞き忘れると要件が確定しない。",
+          "raci": [
+            { "role": "R", "people": ["SE"] },
+            { "role": "A", "people": ["PM"] },
+            { "role": "C", "people": ["顧客担当者"] }
+          ],
+          "how": {
+            "intro": "ヒアリングシートを使って以下を明確化する:",
+            "ordered": true,
+            "steps": [
+              { "label": "背景", "text": "なぜ今このシステムが必要か（きっかけ・期限の理由）" },
+              { "label": "業務", "text": "現状業務の流れと困りごと（As-Is）" },
+              { "label": "要求", "text": "実現したいこと（To-Be）を優先度つきで" },
+              { "label": "承認", "text": "要件を最終承認する人と、その人の関心事" }
+            ]
+          },
+          "inputs": [
+            { "title": "提案書・契約範囲", "kind": "external", "description": "スコープの外枠。ここを超える要求は別途見積り" }
+          ],
+          "outputs": [
+            { "id": "o-req-list", "title": "要求一覧（優先度つき）", "description": "次工程の基本設計のインプットになる" }
+          ],
+          "agenda": ["背景・ゴール確認 (10分)", "現行業務ヒアリング (30分)", "要求の洗い出し (30分)", "次回までの宿題確認 (10分)"],
+          "checkpoints": [
+            { "text": "全要求に優先度（必須/推奨/任意）が付いているか", "hint": "『全部必須』は優先度が付いていないのと同じ。予算超過時に削る順番を握るのが目的" },
+            { "text": "最終承認者を名前で特定できたか" }
+          ],
+          "tags": ["ヒアリング", "要件定義"],
+          "status": "published"
+        }
+      ]
+    },
+    {
+      "id": "pr-build-1",
+      "title": "基本設計",
+      "summary": "要求一覧を実装可能な設計に落とす（実行フェーズ）",
+      "workstreamId": "d-build",
+      "phaseId": "execute",
+      "tasks": [
+        {
+          "id": "t-basic-design",
+          "title": "基本設計書の作成",
+          "why": "要求と設計の対応表が無いと、テスト時に『どの要求が満たされたか』を証明できず検収が揉める。",
+          "how": {
+            "ordered": true,
+            "steps": [
+              { "text": "要求一覧の必須項目から機能一覧に展開する" },
+              { "text": "画面・データ・外部連携の3点を要求とひも付けて記述する" }
+            ]
+          },
+          "inputs": [
+            {
+              "title": "要求一覧（優先度つき）",
+              "kind": "project",
+              "from": { "taskId": "t-req-hearing", "outputId": "o-req-list" }
+            }
+          ],
+          "outputs": [{ "id": "o-basic-design", "title": "基本設計書" }],
+          "status": "draft"
+        }
+      ]
+    },
+    {
+      "id": "pr-pm-1",
+      "title": "キックオフ",
+      "summary": "体制・進め方・コミュニケーションルールの合意（立ち上げフェーズ）",
+      "workstreamId": "d-pm",
+      "phaseId": "initiate",
+      "tasks": [
+        {
+          "id": "t-kickoff",
+          "title": "キックオフMTGの進め方",
+          "why": "最初に決めなかったルール（決定の記録場所・週次の場・エスカレーション先）は、後から入れようとすると角が立つ。",
+          "how": {
+            "ordered": false,
+            "steps": [
+              { "label": "体制", "text": "両社の役割と窓口を1枚にする" },
+              { "label": "運営", "text": "定例の曜日・議事録の置き場・課題管理の場所を決める" }
+            ]
+          },
+          "outputs": [{ "id": "o-kickoff-doc", "title": "キックオフ資料・体制図" }],
+          "status": "draft"
+        }
+      ]
+    }
+  ]
+}
