@@ -115,7 +115,7 @@ MCP は同じ操作を JSON-RPC の `tools/call`（`{"name": "<ツール名>", "
 | 取得 | `GET /api/v1/packs/:slug` | `get_pack` | 1件（ネスト込み） |
 | 本人確認 | `GET /api/v1/me` | `whoami` | キーの持ち主（= 作成する owner）を返す |
 | **投入（新規）** | `POST /api/v1/packs` | `create_pack` | §3 の Pack JSON を丸ごと作成（201, `{slug}`） |
-| メタ更新 | `PATCH /api/v1/packs/:slug` | `update_pack` | title/description/accent/visibility |
+| メタ更新 | `PATCH /api/v1/packs/:slug` | `update_pack` | title/description/accent/visibility/**currentPhase**（現在地。空文字で未設定に戻す） |
 | タスク更新 | `PATCH /api/v1/packs/:slug/tasks/:id` | `update_task` | **全置換**（省略フィールドは消える。先に取得して完全な task を送る）。新規は `processId` 必須。既存タスクの `processId` 変更（移動）は不可 |
 | タスク削除 | `DELETE /api/v1/packs/:slug/tasks/:id` | `delete_task` | 1件削除（MCP は `processId` も渡す） |
 | WS 追加/更新 | `POST /api/v1/packs/:slug/workstreams` | `save_workstream` | `id` 省略で新規・指定で更新（縦レーン） |
