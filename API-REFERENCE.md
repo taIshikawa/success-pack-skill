@@ -142,7 +142,8 @@ MCP は同じ操作を JSON-RPC の `tools/call`（`{"name": "<ツール名>", "
 | チーム改名 | `PATCH /api/v1/groups/:id` | `rename_group` | body `{name}`（owner のみ） |
 | チーム削除 | `DELETE /api/v1/groups/:id` | `delete_group` | 共有も全解除（パック自体は消えない・owner のみ） |
 | メンバー一覧 | `GET /api/v1/groups/:id/members` | `list_group_members` | owner は全員・メンバーは自分の行のみ |
-| メンバー追加 | `POST /api/v1/groups/:id/members` | `add_group_member` | body `{email}`。相手は一度サインイン済みが必要（owner のみ） |
+| ユーザー検索 | `GET /api/v1/users?q=` | `search_users` | 表示名/氏名/メールで招待候補を検索。返る `userId` を追加に使う |
+| メンバー追加 | `POST /api/v1/groups/:id/members` | `add_group_member` | body `{userId}`（search_users で取得・推奨）か `{email}`。相手は一度サインイン済みが必要（owner のみ） |
 | メンバー削除 | `DELETE /api/v1/groups/:id/members` | `remove_group_member` | `?userId=` か body `{userId}`（owner or 本人の退出。owner は外せない） |
 | 共有先一覧 | `GET /api/v1/packs/:slug/shares` | `list_pack_shares` | このパックの共有先チーム（groupId/名前） |
 | **共有する** | `POST /api/v1/packs/:slug/shares` | `share_pack` | body `{groupId}`。パックをチームへ閲覧共有（201） |

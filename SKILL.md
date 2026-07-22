@@ -104,7 +104,8 @@ Pack（サクセスパック＝1つの方法論／案件テンプレ）
 **チームに共有する（閲覧のみ）**
 - `list_groups` — 自分が所有 or 参加しているチーム一覧（読取）。
 - `create_group {name}` — チームを作成（作成者が owner）。返る `id` を共有・招待に使う。
-- `add_group_member {groupId,email}` — メンバーをメールで招待（相手は一度サインイン済みが必要）。
+- `search_users {query}` — 招待候補を表示名/氏名/メールで検索（userId を得る）。
+- `add_group_member {groupId,userId|email}` — メンバーを追加（search_users の userId 推奨・email 直指定も可。相手は一度サインイン済みが必要）。
 - `share_pack {slug,groupId}` — 自分のパックをチームへ**閲覧共有**。メンバーは読めるが**編集はできない**（編集権限は owner に残る）。private パックでも共有相手には見える。
 - `unshare_pack {slug,groupId}` / `remove_group_member {groupId,userId}` / `delete_group {groupId}` — 解除・削除系。
 - `list_pack_shares {slug}` / `list_group_members {groupId}` — 現在の共有先・メンバーの確認（読取）。
