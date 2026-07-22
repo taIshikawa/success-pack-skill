@@ -95,7 +95,16 @@ Pack（サクセスパック＝1つの方法論／案件テンプレ）
 - `preview_merge {slug}` — 派生元（公式など）が更新されているとき、取り込むと何が変わるかを試算（適用なし・3-way）。追加/更新/削除される項目と、編集済みで競合する項目を返す。
 - `merge_upstream {slug}` — 実際に取り込む。**ユーザーが編集した項目は絶対に上書き・削除しない**（上流が変更×自分は未編集の項目だけ自動反映。競合はローカルを残し件数を報告）。取り込み後は上流の最新版に追従する。fork したパックを最新に保ちたいときに使う。
 
-書き込みは **60回/分**（`preview_merge` は読取＝対象外）。`isError` が返ったら少し待って再試行。
+**チームに共有する（閲覧のみ）**
+- `list_groups` — 自分が所有 or 参加しているチーム一覧（読取）。
+- `create_group {name}` — チームを作成（作成者が owner）。返る `id` を共有・招待に使う。
+- `add_group_member {groupId,email}` — メンバーをメールで招待（相手は一度サインイン済みが必要）。
+- `share_pack {slug,groupId}` — 自分のパックをチームへ**閲覧共有**。メンバーは読めるが**編集はできない**（編集権限は owner に残る）。private パックでも共有相手には見える。
+- `unshare_pack {slug,groupId}` / `remove_group_member {groupId,userId}` / `delete_group {groupId}` — 解除・削除系。
+- `list_pack_shares {slug}` / `list_group_members {groupId}` — 現在の共有先・メンバーの確認（読取）。
+- 使いどころ: ユーザーが「このパックをチーム/同僚に見せたい」と言ったら、`create_group`→`add_group_member`→`share_pack` の順。共有は閲覧のみなので、相手に編集させたい場合は代わりに `fork_pack` を案内する。
+
+書き込みは **60回/分**（`preview_merge` / `list_groups` などの読取＝対象外）。`isError` が返ったら少し待って再試行。
 
 ---
 

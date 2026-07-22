@@ -13,6 +13,7 @@
 >   - 公開ツール（作成後に"育てる"＝構造編集）: `update_pack` / `update_task` / `delete_task` / `save_workstream` / `delete_workstream` / `save_phase` / `delete_phase` / `save_process` / `delete_process` / `reorder_tasks` / `delete_pack`
 >   - 公開ツール（ファイル添付）: `upload_asset`
 >   - 公開ツール（上流の取り込み＝合流）: `preview_merge`（試算）/ `merge_upstream`（適用）
+>   - 公開ツール（チーム共有＝閲覧のみ）: `list_groups` / `create_group` / `add_group_member` / `share_pack` / `unshare_pack` / `list_pack_shares` ほか
 
 ---
 
@@ -131,8 +132,26 @@ MCP は同じ操作を JSON-RPC の `tools/call`（`{"name": "<ツール名>", "
 | **パック削除** | `DELETE /api/v1/packs/:slug` | `delete_pack` | 丸ごと削除（**取り消し不可**） |
 | ファイル添付 | `POST /api/v1/packs/:slug/assets` | `upload_asset` | テンプレ実ファイルを Storage に保存し `path` を返す（base64・上限10MB）→ task の `suppliedAssets[].path` へ入れて確定 |
 
+### チーム共有（グループ）
+自分のパックを **チーム（グループ）に「閲覧のみ」で共有** する。共有してもメンバーは読むだけで、**編集権限は owner に残る**。共有先は「自分が所有 or 参加しているチーム」のみ。
+
+| 操作 | REST | MCP ツール | 説明 |
+|---|---|---|---|
+| チーム一覧 | `GET /api/v1/groups` | `list_groups` | 自分が所有 or 参加しているチーム（id/名前/役割/人数） |
+| チーム作成 | `POST /api/v1/groups` | `create_group` | body `{name}`。作成者が owner・自動でメンバー（201, `{id}`） |
+| チーム改名 | `PATCH /api/v1/groups/:id` | `rename_group` | body `{name}`（owner のみ） |
+| チーム削除 | `DELETE /api/v1/groups/:id` | `delete_group` | 共有も全解除（パック自体は消えない・owner のみ） |
+| メンバー一覧 | `GET /api/v1/groups/:id/members` | `list_group_members` | owner は全員・メンバーは自分の行のみ |
+| メンバー追加 | `POST /api/v1/groups/:id/members` | `add_group_member` | body `{email}`。相手は一度サインイン済みが必要（owner のみ） |
+| メンバー削除 | `DELETE /api/v1/groups/:id/members` | `remove_group_member` | `?userId=` か body `{userId}`（owner or 本人の退出。owner は外せない） |
+| 共有先一覧 | `GET /api/v1/packs/:slug/shares` | `list_pack_shares` | このパックの共有先チーム（groupId/名前） |
+| **共有する** | `POST /api/v1/packs/:slug/shares` | `share_pack` | body `{groupId}`。パックをチームへ閲覧共有（201） |
+| 共有解除 | `DELETE /api/v1/packs/:slug/shares` | `unshare_pack` | `?groupId=` か body `{groupId}`（パック owner のみ） |
+
+典型フロー: `create_group`（→ `id`）→ `add_group_member`（email で招待）→ `share_pack`（slug × groupId）。共有されたパックはメンバーの一覧に「共有・閲覧のみ」として並ぶ。相手に編集させたい場合は共有ではなく `fork_pack` を案内する。
+
 ### レート制限
-書き込み系（create_pack / update_pack / update_task / delete_task / save_workstream / delete_workstream / save_phase / delete_phase / save_process / delete_process / reorder_tasks / fork_pack / delete_pack / upload_asset / merge_upstream）は **1キーあたり 60回/分**（`whoami` / `preview_merge` などの読取は対象外）。
+書き込み系（create_pack / update_pack / update_task / delete_task / save_workstream / delete_workstream / save_phase / delete_phase / save_process / delete_process / reorder_tasks / fork_pack / delete_pack / upload_asset / merge_upstream / create_group / rename_group / delete_group / add_group_member / remove_group_member / share_pack / unshare_pack）は **1キーあたり 60回/分**（`whoami` / `preview_merge` / `list_groups` などの読取は対象外）。
 超過時は REST が `429`、MCP は `isError` の結果を返す。少し待って再試行すること。
 
 ### 不変条件（サーバが必ず強制する）
@@ -140,6 +159,7 @@ MCP は同じ操作を JSON-RPC の `tools/call`（`{"name": "<ツール名>", "
 2. **公式(locked)・他人のパックは書込不可**。公式への改善は「提案→レビュー→新版発行」の別導線。
 3. 公開範囲を尊重：private は所有者のみ。
 4. 継承は**ハードコピー**。`fork` 後は元と独立（自動追従しない。差分は `get_upstream_diff` で確認）。
+5. **チーム共有は閲覧のみ**。共有相手は読めるが書き込めない（編集は owner だけ）。private パックでも共有相手には見える。
 
 ## 5. 最小の投入手順（外部AI視点）
 1. §3 の Pack JSON を1件生成する（workstreams/phases を先に定義し、processes がそれを参照）。
